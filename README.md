@@ -26,6 +26,9 @@ Make sure to read the comment on each macro for usage instructions. Some macros 
 
 ### Paladin
 - Lay on Hands
+## Items
+### Lost Mines of Phandelver
+- Hew battleaxe
 # Requirements
 - Midi-qol
 - Dice so Nice!
