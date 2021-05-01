@@ -1,9 +1,16 @@
 //Do not name this macro Hex. It will interfere with the hotbar created macros
 //USAGE: Remove damage fields from the Hex spell. Under 'On Use' field, type this macro's name
 //On a character sheet, head to Attributes > Special Traits. Type the same macro name under Bonus Damage Macros
+//The UpdateEffect must be set as "Run as GM"
 if (!args[0].hitTargets.length) {
   return;
 }
+async function wait(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 function getHex(tactor) {
   return tactor.effects.find(
     (i) =>
@@ -34,7 +41,10 @@ if (args[0].tag === "OnUse") {
         icon: '<i class="fas fa-bolt"></i>',
         label: "Hex",
         callback: async (html) => {
+          let updateEffect = game.macros.getName("UpdateEffect");
           let stat = html.find("#stat").val();
+          await wait(1000);
+
           let effect = getHex(target.actor);
           if (!effect) {
             return ui.notifications.error("No hex effect found");
@@ -46,7 +56,7 @@ if (args[0].tag === "OnUse") {
             mode: 2,
             priority: 20,
           });
-          await effect.update({ changes });
+          updateEffect.execute(target.data._id, effect.data._id, changes);
         },
       },
     },
