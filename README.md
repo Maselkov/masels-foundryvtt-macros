@@ -21,6 +21,8 @@ Make sure to read the comment on each macro for usage instructions. Some macros 
 ### Sorcerer
 - Flexible Casting menu
 - Twinned spell
+### Wizard
+- Arcane Recovery
 
 ### Paladin
 - Lay on Hands
