@@ -1,4 +1,5 @@
-//Do not name this macro Hex. It will interfere with the hotbar created macros
+// Add a DAE effect
+// flags.dnd5e.DamageBonusMacro > Custom > ItemMacro.Hex
 //USAGE: Remove damage fields from the Hex spell. Under 'On Use' field, type this macro's name
 //On a character sheet, head to Attributes > Special Traits. Type the same macro name under Bonus Damage Macros
 //The UpdateEffect must be set as "Run as GM"
