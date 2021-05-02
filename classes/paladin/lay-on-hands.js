@@ -2,113 +2,160 @@
 // Consumed=data.resources.primary.value
 // Max=data.resources.primary.max
 // Copy this to your hotbar for uses if using the Hotbar Uses module
-
-//Modified Crymic's Lay on Hands macro
-let ActiveEffect = game.macros.getName("ActiveEffect");
+if (args[0].targets.length != 1) {
+  return ui.notifications.error(`You may only target a single token`);
+}
+let activeEffect = game.macros.getName("ActiveEffect");
 let target = canvas.tokens.get(args[0].targets[0]._id);
 let illegal = ["undead", "construct"].some((type) =>
   (target.actor.data.data.details.type || "").toLowerCase().includes(type)
 );
-let actorD = game.actors.get(args[0].actor._id);
-let tokenD = canvas.tokens.get(args[0].tokenId);
-let resourceSlot = "primary";
-const resourceName = `data.resources.${resourceSlot}.value`;
-console.log(actor);
-let resource = actor.data.data.resources[resourceSlot];
-let curtRes = resource.value;
-let maxResRnd = curtRes.max / 5;
-let curtResRnd = Math.floor(curtRes / 5);
-console.log(curtRes);
-let maxHealz = Math.clamped(
-  curtRes,
-  0,
-  target.actor.data.data.attributes.hp.max -
-    target.actor.data.data.attributes.hp.value
-);
-if (args[0].targets.length != 1)
-  return ui.notifications.error(`Please select a single target.`);
 if (illegal)
-  return ui.notifications.error(`You cannot use Lay on Hands on this target.`);
-if (curtRes === null)
-  return ui.notifications.warn(`You are out of the required resources.`);
-let content_loh = `<p>Which <strong>Action</strong> would you like to do? [${curtRes}] points remaining.</p>`;
-let buttons = { heal: { label: "Heal", callback: () => loh_heal() } };
-if (curtRes >= 5) {
-  buttons["cure"] = { label: "Cure Condition", callback: () => loh_cure() };
-}
-new Dialog({
-  title: "Lay on Hands",
-  content: content_loh,
-  buttons: buttons,
-}).render(true);
-// Condition Curing Function
-function loh_cure() {
-  let condition_list = ["Diseased", "Poisoned"];
-  let effect = target.actor.effects.filter((i) =>
-    condition_list.includes(i.data.label)
+  return ui.notifications.error(
+    `You cannot use Lay on Hands on Undead or Constructs`
   );
-  let selectOptions = "";
-  for (let i = 0; i < effect.length; i++) {
-    let condition = effect[i].data.label;
-    selectOptions += `<option value="${condition}">${condition}</option>`;
+let act = game.actors.get(args[0].actor._id);
+let tok = canvas.tokens.get(args[0].tokenId);
+let resourceKey = null;
+for (const [key, value] of Object.entries(actor.data.data.resources)) {
+  if (value.label.toLowerCase().startsWith("lay on hands")) {
+    resourceKey = key;
+    break;
   }
-  if (selectOptions === "") {
-    return ui.notifications.warn(`There's nothing to Cure on ${target.name}.`);
-  } else {
-    let content_cure = `<p><em>${tokenD.name} Lays on Hands on ${target.name}.</em></p><p>Choose a Condition Cure | [${curtResRnd}/${maxResRnd}] charges left.</p><form class="flexcol"><div class="form-group"><select id="element">${selectOptions}</select></div></form>`;
-    new Dialog({
-      title: "Lay on Hands: Curing",
-      content: content_cure,
-      buttons: {
-        yes: {
-          icon: '<i class="fas fa-check"></i>',
-          label: "Cure!",
-          callback: async (html) => {
-            let element = html.find("#element").val();
-            ActiveEffect.execute(target.id, element, "remove");
-            await actorD.update({ [resourceName]: curtRes - 5 });
-            let chatContent = `<div class="midi-qol-nobox"><div class="midi-qol-flex-container"><div>Cures ${element}:</div><div class="midi-qol-target-npc midi-qol-target-name" id="${target.data._id}"> ${target.name}</div><div><img src="${target.data.img}" width="30" height="30" style="border:0px"></img></div></div></div>`;
-            const chatMessage = game.messages.get(args[0].itemCardId);
-            let content = duplicate(chatMessage.data.content);
-            const searchString = /<div class="midi-qol-hits-display">[\s\S]*<div class="end-midi-qol-hits-display">/g;
-            const replaceString = `<div class="midi-qol-hits-display"><div class="end-midi-qol-hits-display">${chatContent}`;
-            content = content.replace(searchString, replaceString);
-            chatMessage.update({ content: content });
-          },
+}
+if (!resourceKey) {
+  return ui.notifications.error("No Lay on Hands resource");
+}
+const resourcePath = `data.resources.${resourceKey}.value`;
+let resource = actor.data.data.resources[resourceKey];
+let points = resource.value || 0;
+if (!points) {
+  return ui.notifications.warn(`You are out of Lay on Hands HP`);
+}
+const targetHp = target.actor.data.data.attributes.hp;
+const missingHp = targetHp.max - targetHp.value;
+const maxHeal = Math.min(points, missingHp);
+let curableConditions = target.actor.effects.filter((effect) =>
+  ["Diseased", "Poisoned"].includes(effect.data.label)
+);
+const curable = points >= 5 && curableConditions.length;
+const healable = missingHp > 0;
+let cureLabel = "Cure ";
+if (curableConditions.length === 1) {
+  cureLabel += curableConditions[0].data.label + " (Cost: 5)";
+} else {
+  cureLabel += "Poison or Diesease";
+}
+if (curable && healable) {
+  return new Dialog({
+    title: "Lay on Hands",
+    content: `<p>[<strong>${points}</strong>] Lay on Hands HP remaining.</p>`,
+    buttons: {
+      heal: { label: "Heal", callback: async () => heal() },
+      cure: {
+        label: cureLabel,
+        callback: async () => cure(),
+      },
+    },
+  }).render(true);
+}
+if (curable) {
+  return await cure();
+}
+if (healable) {
+  return await heal();
+}
+return ui.notifications.error("There is nothing to heal or cure");
+
+async function conditionSelectDialog() {
+  let options = [];
+  for (const effect of curableConditions) {
+    const label = effect.data.label;
+    options.push(`<option value="${label}">${label}</option>`);
+  }
+  new Dialog({
+    title: "Lay on Hands: Curing",
+    content: `<p>Select which condition you wish to cure</p>
+              <form>
+                <div class="form-group">
+                  <select id="condition" name="condition">
+                    ${options}
+                  </select>
+                </div>
+              </form>`,
+    buttons: {
+      ok: {
+        label: "Cure",
+        callback: async (html) => {
+          let name = html.find('[name="condition"]').val();
+          let effect = target.actor.effects.entries.find(
+            (ef) => ef.data.label === name
+          );
+          return await cureCondition(effect);
         },
       },
-    }).render(true);
-  }
+    },
+  }).render(true);
 }
-// Healing Function
-function loh_heal() {
-  let content_heal = `<p><em>${tokenD.name} lays hands on ${target.name}.</em></p><p>How many HP do you want to restore to ${target.name}?</p><form class="flexcol"><div class="form-group"><label for="num">HP to Restore: (Max = ${maxHealz})</label><input id="num" name="num" type="number" min="0" max="${maxHealz}"></input></div></form>`;
+
+async function cureCondition(effect) {
+  await activeEffect.execute(target.actor.id, "remove", effect.data._id);
+  await act.update({ [resourcePath]: points - 5 });
+  let chatContent = `
+                              <div class="midi-qol-nobox">
+                                  <div class="midi-qol-flex-container">
+                                      <div>Cures ${effect.data.label}:</div>
+                                      <div class="midi-qol-target-npc midi-qol-target-name" id="${target.data._id}">
+                                          ${target.name}
+                                      </div>
+                                      <div>
+                                          <img src="${target.data.img}" width="30" height="30" style="border:0px">
+                                      </div>
+                                  </div>
+                              </div>`;
+  const chatMessage = game.messages.get(args[0].itemCardId);
+  let content = duplicate(chatMessage.data.content);
+  const searchString = /<div class="midi-qol-hits-display">[\s\S]*<div class="end-midi-qol-hits-display">/g;
+  const replaceString = `<div class="midi-qol-hits-display"><div class="end-midi-qol-hits-display">${chatContent}`;
+  content = content.replace(searchString, replaceString);
+  chatMessage.update({ content: content });
+}
+
+async function cure() {
+  if (curableConditions.length === 1) {
+    return await cureCondition(curableConditions[0]);
+  }
+  await conditionSelectDialog();
+}
+function heal() {
   new Dialog({
     title: "Lay on Hands: Healing",
-    content: content_heal,
+    content: `
+      <form>
+        <div class="form-group">
+          <label for="hp">Amount to restore to ${target.name}:</label>
+          <input id="hp" name="hp" type="number" min="0" max="${maxHeal}" placeholder="Maximum ${maxHeal}"></input>
+        </div>
+      </form>`,
     buttons: {
       heal: {
-        icon: '<i class="fas fa-check"></i>',
         label: "Heal",
         callback: async (html) => {
-          let number = Math.floor(Number(html.find("#num")[0].value));
-          if (number < 1 || number > maxHealz) {
-            return ui.notifications.warn(
-              `Invalid number of charges entered = ${number}. Aborting action.`
-            );
-          } else {
-            let damageRoll = new Roll(`${number}`).roll();
-            new MidiQOL.DamageOnlyWorkflow(
-              actorD,
-              tokenD,
-              damageRoll.total,
-              "healing",
-              [target],
-              damageRoll,
-              { flavor: `(Healing)`, itemCardId: args[0].itemCardId }
-            );
-            await actorD.update({ [resourceName]: curtRes - number });
+          let hp = parseInt(html.find('[name="hp"]').val());
+          if (hp < 1 || hp > maxHeal) {
+            return ui.notifications.error(`Invalid heal amount`);
           }
+          let heal = new Roll(`${hp}`).roll();
+          new MidiQOL.DamageOnlyWorkflow(
+            act,
+            tok,
+            heal.total,
+            "healing",
+            [target],
+            heal,
+            { flavor: `Lay on Hands`, itemCardId: args[0].itemCardId }
+          );
+          await act.update({ [resourcePath]: points - hp });
         },
       },
     },
