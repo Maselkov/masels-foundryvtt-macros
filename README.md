@@ -14,6 +14,8 @@ Make sure to read the comment on each macro for usage instructions. Some macros 
 - Ice Knife
 
 ## Class Features
+### Paladin
+- Divine Smite (Automatically appends damage to the attack card, accounts for undead and crit, is a feature and not a fake spell)
 ### Monk
 - Ki point spending menu
 - Deflect missiles
