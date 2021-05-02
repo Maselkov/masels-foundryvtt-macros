@@ -99,7 +99,7 @@ async function conditionSelectDialog() {
 }
 
 async function cureCondition(effect) {
-  await activeEffect.execute(target.actor.id, "remove", effect.data._id);
+  await activeEffect.execute(target.id, "remove", effect.data._id);
   await act.update({ [resourcePath]: points - 5 });
   let chatContent = `
                               <div class="midi-qol-nobox">
