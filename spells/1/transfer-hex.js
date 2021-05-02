@@ -40,9 +40,10 @@ if (hexedActor.data.data.attributes.hp.value > 0) {
   ui.notifications.error("The hexed target is alive!");
   return;
 }
-await hexedActor.deleteEmbeddedEntity("ActiveEffect", hexEffect._id);
+let activeEffect = game.macros.getName("ActiveEffect");
+await activeEffect.execute(hexedActor.id, "remove", hexEffect._id);
 delete hexEffect._id;
-await target.actor.createEmbeddedEntity("ActiveEffect", hexEffect);
+await activeEffect.execute(target.actor.id, "add", hexEffect);
 await act.update({
   "flags.midi-qol.concentration-data.targets": [
     {
