@@ -1,4 +1,3 @@
-// Create a separate feature named Hex Transfer or similar
 // This currently does not work across scenes
 // This maintains concentration and duration.
 if (!args[0].hitTargets.length) {
@@ -41,9 +40,9 @@ if (hexedActor.data.data.attributes.hp.value > 0) {
   return;
 }
 let activeEffect = game.macros.getName("ActiveEffect");
-await activeEffect.execute(hexedActor.id, "remove", hexEffect._id);
-delete hexEffect._id;
-await activeEffect.execute(target.actor.id, "add", hexEffect);
+console.log(hexEffect);
+await activeEffect.execute(token.id, "remove", hexEffect._id);
+await activeEffect.execute(target.id, "add", hexEffect);
 await act.update({
   "flags.midi-qol.concentration-data.targets": [
     {
