@@ -41,7 +41,7 @@ if (hexedActor.data.data.attributes.hp.value > 0) {
 }
 let activeEffect = game.macros.getName("ActiveEffect");
 console.log(hexEffect);
-await activeEffect.execute(token.id, "remove", hexEffect._id);
+await activeEffect.execute(hexedToken.id, "remove", hexEffect._id);
 await activeEffect.execute(target.id, "add", hexEffect);
 await act.update({
   "flags.midi-qol.concentration-data.targets": [
