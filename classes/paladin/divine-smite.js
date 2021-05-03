@@ -11,14 +11,7 @@ let smiteCard = game.messages.entities
   );
 await smiteCard.delete();
 async function smite(slotLevel, pact = false) {
-  let target = canvas.tokens.get(args[0].hitTargets[0]._id);
   let dice = Math.min(slotLevel + 1, 5);
-  let undead = ["undead", "fiend"].some((type) =>
-    (target.actor.data.data.details.type || "").toLowerCase().includes(type)
-  );
-  if (undead) {
-    dice += 1;
-  }
   let attackMessage = game.messages.entities
     .reverse()
     .find(
@@ -35,7 +28,13 @@ async function smite(slotLevel, pact = false) {
     );
     return;
   }
-  console.log(attack.hitTargets);
+  let target = Array.from(attack.hitTargets)[0];
+  let undead = ["undead", "fiend"].some((type) =>
+    (target.actor.data.data.details.type || "").toLowerCase().includes(type)
+  );
+  if (undead) {
+    dice += 1;
+  }
   let key = pact ? "pact" : "spell" + slotLevel;
   await act.update({
     [`data.spells.${key}.value`]: spells[key].value - 1,
