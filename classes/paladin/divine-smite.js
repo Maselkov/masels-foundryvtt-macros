@@ -1,6 +1,7 @@
 let act = game.actors.get(args[0].actor._id);
 let tok = canvas.tokens.get(args[0].tokenId);
 let spells = duplicate(act.data.data.spells);
+let pactLevel = spells.pact.level;
 let smiteCard = game.messages.entities
   .reverse()
   .find(
@@ -9,8 +10,7 @@ let smiteCard = game.messages.entities
       message.data.flavor === args[0].item.name
   );
 await smiteCard.delete();
-
-async function smite(slotLevel) {
+async function smite(slotLevel, pact = false) {
   let target = canvas.tokens.get(args[0].hitTargets[0]._id);
   let dice = Math.min(slotLevel + 1, 5);
   let undead = ["undead", "fiend"].some((type) =>
@@ -35,7 +35,8 @@ async function smite(slotLevel) {
     );
     return;
   }
-  let key = "spell" + slotLevel;
+  console.log(attack.hitTargets);
+  let key = pact ? "pact" : "spell" + slotLevel;
   await act.update({
     [`data.spells.${key}.value`]: spells[key].value - 1,
   });
@@ -52,7 +53,9 @@ async function smite(slotLevel) {
     attack.targets,
     roll,
     {
-      flavor: `${args[0].item.name} - slot level <strong>${slotLevel}</strong>`,
+      flavor: `${args[0].item.name} - ${
+        pact ? "Pact Magic" : "slot"
+      } level <strong>${slotLevel}</strong>`,
       itemCardId: attack.itemCardId,
     }
   );
@@ -66,6 +69,10 @@ for (let i = 1; i < 10; ++i) {
   slot.level = i;
   options.push(slot);
 }
+if (spells.pact?.max && spells.pact?.value > 0) {
+  spells.pact["pact"] = true;
+  options.push(spells.pact);
+}
 if (!options.length) {
   ui.notifications.error("No spell slots available");
   return;
@@ -76,7 +83,9 @@ if (options.length === 1) {
 }
 options = options.map(
   (slot) =>
-    `<option value="${slot.level}">Level ${slot.level} (${slot.value}/${slot.max})</option>`
+    `<option value="${slot.pact ? "pact" : slot.level}">${
+      slot.pact ? "Pact Magic: " : ""
+    }Level ${slot.level} (${slot.value}/${slot.max})</option>`
 );
 
 new Dialog({
@@ -95,7 +104,10 @@ new Dialog({
     ok: {
       label: `⚡`,
       callback: async (html) => {
-        await smite(parseInt(html.find('[name="level"]').val()));
+        const choice = html.find('[name="level"]').val();
+        const pact = choice === "pact";
+        const level = pact ? pactLevel : Number(choice);
+        await smite(level, pact);
       },
     },
   },
