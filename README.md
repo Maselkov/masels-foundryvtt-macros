@@ -6,6 +6,9 @@ Make sure to read the comment on each macro for usage instructions. Some macros 
 # Currently automated
 
 ## Spells
+### Cantrip
+- Toll the  Dead
+
 ### Level 1
 - Hex (With automatically adding damage to attack rolls)
 - Chromatic Orb
