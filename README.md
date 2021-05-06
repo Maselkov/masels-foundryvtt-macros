@@ -8,7 +8,7 @@ Make sure to read the comment on each macro for usage instructions. Some macros 
 ## Spells
 ### Cantrip
 - Toll the  Dead
-
+- Green-flame Blade
 ### Level 1
 - Hex (With automatically adding damage to attack rolls)
 - Chromatic Orb
