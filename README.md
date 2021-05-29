@@ -12,6 +12,7 @@ Make sure to read the comment on each macro for usage instructions. Some macros 
 ### Level 1
 - Hex (With automatically adding damage to attack rolls)
 - Chromatic Orb
+- Chaos Bolt
 
 ### Level 2
 - Ice Knife
