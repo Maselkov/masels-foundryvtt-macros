@@ -89,7 +89,8 @@ if (!target) {
   return;
 }
 const spellAbility = actor.data.data.attributes["spellcasting"];
-const spellMod = actor.data.data.abilities[spellAbility].mod;
+const spellMod =
+  actor.data.data.abilities[spellAbility].mod + actor.data.data.attributes.prof;
 let roll = new Roll(`${bonus} + ${spellMod}`).roll();
 if (bonusDice) {
   await game.dice3d?.showForRoll(roll);
