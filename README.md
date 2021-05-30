@@ -32,6 +32,10 @@ Make sure to read the comment on each macro for usage instructions. Some macros 
 
 ### Paladin
 - Lay on Hands
+
+### Fighter
+- Giant's Might
+
 ## Items
 ### Lost Mines of Phandelver
 - Hew battleaxe
