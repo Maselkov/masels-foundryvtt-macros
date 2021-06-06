@@ -37,7 +37,8 @@ Make sure to read the comment on each macro for usage instructions. Some macros 
 
 ### Fighter
 - Giant's Might
-
+### Warlock
+- Genie's Wrath
 ## Items
 ### Lost Mines of Phandelver
 - Hew battleaxe
