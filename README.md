@@ -37,6 +37,7 @@ Make sure to read the comment on each macro for usage instructions. Some macros 
 
 ### Fighter
 - Giant's Might
+- Fire Rune
 ### Warlock
 - Genie's Wrath
 ## Items
