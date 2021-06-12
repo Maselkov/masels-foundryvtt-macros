@@ -27,6 +27,7 @@ Make sure to read the comment on each macro for usage instructions. Some macros 
 - Deflect missiles
 
 ### Sorcerer
+- Elemental Affinity
 - Flexible Casting menu
 - Twinned spell
 ### Wizard
