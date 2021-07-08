@@ -14,7 +14,7 @@ for (let i = 1; i <= 5; ++i) {
   let slot = spells["spell" + i];
 
   if (!slot.max || slot.max === slot.value) {
-    break;
+    continue;
   }
   options.push(
     `<label for="${i}">Level ${i} (${slot.value}/${slot.max})</label>
