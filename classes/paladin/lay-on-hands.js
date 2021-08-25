@@ -8,7 +8,7 @@ if (args[0].targets.length != 1) {
 let activeEffect = game.macros.getName("ActiveEffect");
 let target = canvas.tokens.get(args[0].targets[0]._id);
 let illegal = ["undead", "construct"].some((type) =>
-  (target.actor.data.data.details.type || "").toLowerCase().includes(type)
+  (target.actor.data.data.details.type.value || "").toLowerCase().includes(type)
 );
 if (illegal)
   return ui.notifications.error(
@@ -115,7 +115,8 @@ async function cureCondition(effect) {
                               </div>`;
   const chatMessage = game.messages.get(args[0].itemCardId);
   let content = duplicate(chatMessage.data.content);
-  const searchString = /<div class="midi-qol-hits-display">[\s\S]*<div class="end-midi-qol-hits-display">/g;
+  const searchString =
+    /<div class="midi-qol-hits-display">[\s\S]*<div class="end-midi-qol-hits-display">/g;
   const replaceString = `<div class="midi-qol-hits-display"><div class="end-midi-qol-hits-display">${chatContent}`;
   content = content.replace(searchString, replaceString);
   chatMessage.update({ content: content });
