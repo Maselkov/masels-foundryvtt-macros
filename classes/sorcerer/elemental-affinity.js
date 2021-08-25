@@ -7,6 +7,7 @@ if (!draconicAncestry || draconicAncestry !== args[0].damageDetail[0].type) {
 }
 token = canvas.tokens.get(args[0].tokenId);
 actor = token.actor;
+const damage = actor.data.data.abilities.cha.mod;
 if (game.combat) {
   token = canvas.tokens.get(args[0].tokenId);
   actor = token.actor;
@@ -18,7 +19,7 @@ if (game.combat) {
   let useDamage = await new Promise((resolve, reject) => {
     new Dialog({
       title: "Conditional Damage",
-      content: `<p>Use Elemental Affinity bonus damage?</p>`,
+      content: `<p>Use Elemental Affinity to deal <strong>${damage} bonus ${draconicAncestry} damage</strong>?</p>`,
       buttons: {
         one: {
           icon: '<i class="fas fa-check"></i>',
@@ -48,7 +49,9 @@ for (const [key, value] of Object.entries(actor.data.data.resources)) {
     break;
   }
 }
-if (resourceKey) {
+const hasResistance =
+  actor.data.data.traits.dr?.value.includes(draconicAncestry);
+if (resourceKey && !hasResistance) {
   let points = actor.data.data.resources[resourceKey].value;
   if (points >= 1) {
     let gainResistance = await new Promise((resolve, reject) => {
@@ -97,6 +100,6 @@ if (resourceKey) {
   }
 }
 return {
-  damageRoll: `${actor.data.data.abilities.cha.mod}[${draconicAncestry}]`,
+  damageRoll: `${damage}[${draconicAncestry}]`,
   flavor: "Elemental Affinity",
 };
