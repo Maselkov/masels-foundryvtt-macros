@@ -2,11 +2,12 @@ let act = game.actors.get(args[0].actor._id);
 let tok = canvas.tokens.get(args[0].tokenId);
 let spells = duplicate(act.data.data.spells);
 let pactLevel = spells.pact.level;
+console.log(args);
 let smiteCard = game.messages.entities
   .reverse()
   .find(
     (message) =>
-      message.data.flags["midi-qol"]?.actor === act.id &&
+      message.data.flags["midi-qol"]?.actorUuid === args[0].actorUuid &&
       message.data.flavor === args[0].item.name
   );
 await smiteCard.delete();
@@ -16,11 +17,11 @@ async function smite(slotLevel, pact = false) {
     .reverse()
     .find(
       (message) =>
-        message.data.flags["midi-qol"]?.actor === act.id &&
+        message.data.flags["midi-qol"]?.actorUuid === args[0].actorUuid &&
         message.data.flavor !== args[0].item.name
     );
   let attack = MidiQOL.Workflow.getWorkflow(
-    attackMessage.data.flags["midi-qol"].itemId
+    attackMessage.data.flags["midi-qol"].itemUuid
   );
   if (!attack.hitTargets.size) {
     ui.notifications.error(
@@ -29,8 +30,11 @@ async function smite(slotLevel, pact = false) {
     return;
   }
   let target = Array.from(attack.hitTargets)[0];
+  console.log(target);
   let undead = ["undead", "fiend"].some((type) =>
-    (target.actor.data.data.details.type || "").toLowerCase().includes(type)
+    (target.actor.data.data.details.type.value || "")
+      .toLowerCase()
+      .includes(type)
   );
   if (undead) {
     dice += 1;
