@@ -1,5 +1,7 @@
-let target = canvas.tokens.get(args[0]).actor;
-await target.updateEmbeddedEntity("ActiveEffect", {
-  _id: args[1],
-  changes: args[2],
-});
+let target = DAE.DAEfromUuid(args[0]).actor;
+await target.updateEmbeddedDocuments("ActiveEffect", [
+  {
+    _id: args[1],
+    ...args[2],
+  },
+]);
