@@ -5,11 +5,11 @@ let attackMessage = game.messages.entities
   .reverse()
   .find(
     (message) =>
-      message.data.flags["midi-qol"]?.actor === actor.id &&
+      message.data.flags["midi-qol"]?.actorUuid === args[0].actorUuid &&
       message.data.flavor !== args[0].item.name
   );
 let attack = MidiQOL.Workflow.getWorkflow(
-  attackMessage.data.flags["midi-qol"].itemId
+  attackMessage.data.flags["midi-qol"].itemUuid
 );
 let target = canvas.tokens.get(Array.from(attack.hitTargets)[0].id);
 let bonus = "";
