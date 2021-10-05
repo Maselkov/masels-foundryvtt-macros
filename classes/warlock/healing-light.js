@@ -41,7 +41,6 @@ input {
 <form>
     <div class="form-group" style="flex-direction: column">
         <input type="range" min="1" max="${diceMax}" value="1" class="slider" name="diceCount" list="healingLightDiceTickmarks">
-        <br>
         <datalist id="healingLightDiceTickmarks">
             ${options.join("")}
         </datalist>
