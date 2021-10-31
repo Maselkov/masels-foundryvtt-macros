@@ -9,6 +9,7 @@ if (args[0] === "on") {
 }
 if (args[0] === "each") {
   let heal = true;
+
   const cleric = originActor.data.data.classes.cleric.levels;
   const healFormula = `1d6 + ${cleric}`;
   let conditions = actor.effects
