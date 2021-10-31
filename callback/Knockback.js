@@ -11,6 +11,7 @@ const y2 = ttoken.center.y;
 let angcoeff = Math.abs((y2 - y1) / (x2 - x1));
 if (angcoeff > 1) angcoeff = 1 / angcoeff;
 const unitDistance = distance + (distance * Math.sqrt(2) - distance) * angcoeff;
+console.log(angcoeff);
 const gridUnit = canvas.scene.data.grid;
 distance = (distance * canvas.scene.data.grid) / canvas.scene.data.gridDistance;
 
@@ -35,7 +36,7 @@ async function findDestination() {
         let t = sx ? getYx(i) : getXy(i);
         let snapCoord = sx ? await canvas.grid.getCenter(t, i) : await canvas.grid.getCenter(i, t);
         let cdist = await canvas.grid.measureDistance({ "x": snapCoord[0], "y": snapCoord[1] }, ttoken.center);
-        if (await canvas.grid.measureDistance({ "x": snapCoord[0], "y": snapCoord[1] }, ptoken.center) > await canvas.grid.measureDistance(ttoken.center, ptoken.center) && await canvas.grid.measureDistance({ "x": snapCoord[0], "y": snapCoord[1] }, ptoken.center) > unitDistance) {
+        if (await canvas.grid.measureDistance({ "x": snapCoord[0], "y": snapCoord[1] }, ptoken.center) > await canvas.grid.measureDistance(ttoken.center, ptoken.center)) {
             if (!ttoken.checkCollision(new PIXI.Point(snapCoord[0], snapCoord[1]))) {
                 if (sx) {
                     coordinatesArray.push({ "x": t, "y": i, "dist": cdist });
@@ -51,7 +52,28 @@ async function findDestination() {
     return coordinatesArray;
 
 }
+const negativeY = ptoken.center.y - ttoken.center.y > 0
+const negativeX = ptoken.center.x - ttoken.center.x > 0
 let fdest = await findDestination();
+if (!fdest.length) {
+    return;
+}
+console.log(fdest);
+fdest = fdest.filter((point) => {
+    if (negativeX) {
+        if (point.x - x1 > 0) { return false };
+    }
+    else {
+        if (point.x - x1 < 0) { return false };
+    }
+    if (negativeY) {
+        if (point.y - y1 > 0) { return false }
+    }
+    else {
+        if (point.y - y1 < 0) { return false }
+    }
+    return true;
+})
 if (!fdest.length) {
     return;
 }
