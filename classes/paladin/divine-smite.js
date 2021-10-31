@@ -2,7 +2,6 @@ let act = game.actors.get(args[0].actor._id);
 let tok = canvas.tokens.get(args[0].tokenId);
 let spells = duplicate(act.data.data.spells);
 let pactLevel = spells.pact.level;
-console.log(args);
 let smiteCard = game.messages.entities
   .reverse()
   .find(
