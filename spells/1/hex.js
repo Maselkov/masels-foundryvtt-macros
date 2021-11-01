@@ -1,9 +1,4 @@
-// Add a DAE effect
-// flags.dnd5e.DamageBonusMacro > Custom > ItemMacro.Hex
-//USAGE: Remove damage fields from the Hex spell. Under 'On Use' field, type this macro's name
-//On a character sheet, head to Attributes > Special Traits. Type the same macro name under Bonus Damage Macros
-//The UpdateEffect must be set as "Run as GM"
-if (!args[0].hitTargets.length) {
+if (args[0].hitTargets.length === 0) {
   return;
 }
 async function wait(ms) {
@@ -12,95 +7,125 @@ async function wait(ms) {
   });
 }
 
-function getHex(tactor) {
-  let eff = tactor.effects.find(
-    (i) =>
-      i.data.label === "Hex" &&
-      DAE.DAEfromUuid(i.data.origin).actor._id === args[0].actor._id
-  );
-  if (eff) {
-    return duplicate(eff);
-  }
-  return false;
-}
-let target = args[0].hitTargets[0];
-actor = args[0].actor;
 if (args[0].tag === "OnUse") {
+  let actor = await fromUuid(args[0].actorUuid);
   const lvl = args[0].spellLevel;
   const durationSeconds = [3, 4].includes(lvl)
     ? 60 * 60 * 8
     : lvl > 4
     ? 60 * 60 * 24
     : 60 * 60;
-
+  //Needs to be a callback so that effect is applied first.
+  let clicked = false;
+  async function setupHex(hexStat) {
+    console.log("weh");
+    if (clicked) {
+      return;
+    }
+    console.log("weh2");
+    clicked = true;
+    await wait(1000);
+    let target = args[0].hitTargets[0].actor;
+    let effect = target.effects.find((i) => i.data.origin === args[0].itemUuid);
+    console.log(effect);
+    if (!effect) {
+      return ui.notifications.error("No hex effect found");
+    }
+    effect = duplicate(effect);
+    effect.duration.seconds = durationSeconds;
+    effect.changes.push({
+      key: `flags.midi-qol.disadvantage.ability.check.${hexStat}`,
+      value: 1,
+      mode: 2,
+      priority: 20,
+    });
+    console.log(effect);
+    MidiQOL.socket().functions.get("updateEffects")({
+      actorUuid: target.uuid,
+      updates: [effect],
+    });
+    let duration = args[0].item.effects[0].duration;
+    duration.seconds = durationSeconds;
+    duration.startTime = game.time.worldTime;
+    const effectData = {
+      changes: [
+        {
+          key: `flags.maselkov.hexTarget`,
+          mode: 5,
+          value: target.uuid,
+          priority: 20,
+        },
+        {
+          key: "flags.dnd5e.DamageBonusMacro",
+          mode: 0,
+          value: `ItemMacro.${args[0].item.name}`,
+          priority: 20,
+        },
+      ],
+      origin: args[0].itemUuid,
+      disabled: false,
+      duration: duration,
+      icon: args[0].item.img,
+      label: args[0].item.name,
+    };
+    await actor.createEmbeddedDocuments("ActiveEffect", [effectData]);
+    let concentrationEffect = duplicate(
+      actor.effects.find(
+        (i) => i.data.flags?.["midi-qol"]?.isConcentration === args[0].itemUuid
+      ).data
+    );
+    if (concentrationEffect) {
+      await actor.updateEmbeddedDocuments("ActiveEffect", [
+        { _id: concentrationEffect._id, duration: duration },
+      ]);
+    }
+  }
   new Dialog({
-    title: "Choose a damage type",
-    content: `
-          <form class="flexcol">
-            <div class="form-group">
-              <select id="stat">
-                <option value="str">Strength</option>
-                <option value="dex">Dexterity</option>
-                <option value="con">Constitution</option>
-                <option value="int">Intelligence</option>
-                <option value="wis">Wisdom</option>
-                <option value="cha">Charisma</option>
-              </select>
-            </div>
-          </form>
-        `,
-    buttons: {
-      yes: {
-        icon: '<i class="fas fa-bolt"></i>',
-        label: "Hex",
+    title: "Choose the stat to damage",
+    buttons: [
+      {
+        label: "STR",
+        icon: '<i class="fas fa-dumbbell"></i><br>',
+        callback: () => setupHex("str"),
       },
-    },
-    close: async (html) => {
-      let updateEffect = game.macros.getName("UpdateEffect");
-      let stat = html.find("#stat").val();
-      if (!stat) {
-        stat = "str";
-      }
-      let effect = getHex(target.actor);
-      if (!effect) {
-        return ui.notifications.error("No hex effect found");
-      }
-      let changes = effect.changes;
-      let duration = effect.duration;
-      duration.seconds = durationSeconds;
-      changes.push({
-        key: `flags.midi-qol.disadvantage.ability.check.${stat}`,
-        value: 1,
-        mode: 2,
-        priority: 20,
-      });
-      updateEffect.execute(target.uuid, effect._id, {
-        changes: changes,
-        duration: duration,
-      });
-
-      let concentrationEffect = duplicate(
-        actor.effects.find(
-          (i) =>
-            i.data.flags?.["midi-qol"]?.isConcentration === args[0].itemUuid
-        ).data
-      );
-      if (concentrationEffect) {
-        let concDuration = concentrationEffect.duration;
-        concDuration.seconds = durationSeconds;
-        updateEffect.execute(args[0].uuid, concentrationEffect._id, {
-          duration: concDuration,
-        });
-      }
-    },
+      {
+        label: "DEX",
+        icon: '<i class="fas fa-feather"></i><br>',
+        callback: () => setupHex("dex"),
+      },
+      {
+        label: "CON",
+        icon: '<i class="fas fa-heart"></i><br>',
+        callback: () => setupHex("con"),
+      },
+      {
+        label: "INT",
+        icon: '<i class="fas fa-book"></i><br>',
+        callback: () => setupHex("int"),
+      },
+      {
+        label: "WIS",
+        icon: '<i class="fas fa-eye"></i><br>',
+        callback: () => setupHex("wis"),
+      },
+      {
+        label: "CHA",
+        icon: '<i class="fas fa-hands-helping"></i><br>',
+        callback: () => setupHex("cha"),
+      },
+    ],
   }).render(true);
 }
 if (args[0].tag === "DamageBonus") {
   if (!args[0].attackRoll) {
     return;
   }
-  if (getHex(target.actor)) {
-    const diceCount = args[0].isCritical ? 2 : 1;
-    return { damageRoll: `${diceCount}d6[Necrotic]`, flavor: "Hex" };
+  console.log(args);
+  let item = await fromUuid(args[0].sourceItemUuid);
+  let target = args[0].hitTargets[0];
+  if (target.uuid !== getProperty(args[0].actor.flags, "maselkov.hexTarget")) {
+    return {};
   }
+  const diceMult = args[0].isCritical ? 2 : 1;
+  return { damageRoll: `${diceMult}d6[necrotic]`, flavor: item.name };
 }
