@@ -15,7 +15,7 @@ new Dialog({
         one: {
             icon: '<i class="fas fa-check"></i>',
             label: "Yes",
-            callback: async () => await game.macros.getName("Knockback").execute(canvas.tokens.get(args[0].tokenId), canvas.tokens.get(args[0].hitTargets[0].id), 10),
+            callback: async () => await game.macros.getName("Knockback").execute(args[0].tokenId, args[0].hitTargets[0].id, 10),
         },
         two: {
             icon: '<i class="fas fa-times"></i>',
