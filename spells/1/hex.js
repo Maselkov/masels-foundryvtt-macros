@@ -18,16 +18,13 @@ if (args[0].tag === "OnUse") {
   //Needs to be a callback so that effect is applied first.
   let clicked = false;
   async function setupHex(hexStat) {
-    console.log("weh");
     if (clicked) {
       return;
     }
-    console.log("weh2");
     clicked = true;
     await wait(1000);
     let target = args[0].hitTargets[0].actor;
     let effect = target.effects.find((i) => i.data.origin === args[0].itemUuid);
-    console.log(effect);
     if (!effect) {
       return ui.notifications.error("No hex effect found");
     }
@@ -39,7 +36,6 @@ if (args[0].tag === "OnUse") {
       mode: 2,
       priority: 20,
     });
-    console.log(effect);
     MidiQOL.socket().functions.get("updateEffects")({
       actorUuid: target.uuid,
       updates: [effect],
@@ -120,7 +116,6 @@ if (args[0].tag === "DamageBonus") {
   if (!args[0].attackRoll) {
     return;
   }
-  console.log(args);
   let item = await fromUuid(args[0].sourceItemUuid);
   let target = args[0].hitTargets[0];
   if (target.uuid !== getProperty(args[0].actor.flags, "maselkov.hexTarget")) {
