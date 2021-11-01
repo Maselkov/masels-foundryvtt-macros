@@ -1,8 +1,8 @@
 // Script Macro, Execute Macro as GM
 //await knockback(canvas.tokens.controlled[0],Array.from(game.user.targets)[0],10);
 // Very uglily modified knockback macro from foundry's discord that adds collission support
-let ptoken = args[0];
-let ttoken = args[1];
+let ptoken = canvas.tokens.get(args[0]);
+let ttoken = canvas.tokens.get(args[1]);
 let distance = Number(args[2]);
 const x1 = ptoken.center.x;
 const x2 = ttoken.center.x;
@@ -11,7 +11,6 @@ const y2 = ttoken.center.y;
 let angcoeff = Math.abs((y2 - y1) / (x2 - x1));
 if (angcoeff > 1) angcoeff = 1 / angcoeff;
 const unitDistance = distance + (distance * Math.sqrt(2) - distance) * angcoeff;
-console.log(angcoeff);
 const gridUnit = canvas.scene.data.grid;
 distance = (distance * canvas.scene.data.grid) / canvas.scene.data.gridDistance;
 
