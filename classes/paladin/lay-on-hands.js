@@ -6,7 +6,7 @@ if (args[0].targets.length != 1) {
   return ui.notifications.error(`You may only target a single token`);
 }
 let activeEffect = game.macros.getName("ActiveEffect");
-let target = canvas.tokens.get(args[0].targets[0]._id);
+let target = args[0].targets[0];
 let illegal = ["undead", "construct"].some((type) =>
   (target.actor.data.data.details.type.value || "").toLowerCase().includes(type)
 );
@@ -14,10 +14,10 @@ if (illegal)
   return ui.notifications.error(
     `You cannot use Lay on Hands on Undead or Constructs`
   );
-let act = game.actors.get(args[0].actor._id);
-let tok = canvas.tokens.get(args[0].tokenId);
+actor = args[0].actor;
+token = await fromUuid(args[0].tokenUuid);
 let resourceKey = null;
-for (const [key, value] of Object.entries(actor.data.data.resources)) {
+for (const [key, value] of Object.entries(actor.data.resources)) {
   if (value.label.toLowerCase().startsWith("lay on hands")) {
     resourceKey = key;
     break;
@@ -27,10 +27,10 @@ if (!resourceKey) {
   return ui.notifications.error("No Lay on Hands resource");
 }
 const resourcePath = `data.resources.${resourceKey}.value`;
-let resource = actor.data.data.resources[resourceKey];
+let resource = actor.data.resources[resourceKey];
 let points = resource.value || 0;
 if (!points) {
-  return ui.notifications.warn(`You are out of Lay on Hands HP`);
+  return ui.notifications.warn(`You are out of Lay on Hands points`);
 }
 const targetHp = target.actor.data.data.attributes.hp;
 const missingHp = targetHp.max - targetHp.value;
@@ -99,8 +99,9 @@ async function conditionSelectDialog() {
 }
 
 async function cureCondition(effect) {
-  await activeEffect.execute(target.id, "remove", effect.data._id);
-  await act.update({ [resourcePath]: points - 5 });
+  let func = MidiQOL.socket().functions.get("removeEffects");
+  await func({ actorUuid: target.actor.uuid, effects: [effect.id] });
+  await actor.update({ [resourcePath]: points - 5 });
   let chatContent = `
                               <div class="midi-qol-nobox">
                                   <div class="midi-qol-flex-container">
@@ -146,17 +147,17 @@ function heal() {
           if (hp < 1 || hp > maxHeal) {
             return ui.notifications.error(`Invalid heal amount`);
           }
-          let heal = new Roll(`${hp}`).roll();
+          let heal = await new Roll(`${hp}`).roll();
           new MidiQOL.DamageOnlyWorkflow(
-            act,
-            tok,
+            actor,
+            token,
             heal.total,
             "healing",
             [target],
             heal,
             { flavor: `Lay on Hands`, itemCardId: args[0].itemCardId }
           );
-          await act.update({ [resourcePath]: points - hp });
+          await actor.update({ [resourcePath]: points - hp });
         },
       },
     },
