@@ -2,7 +2,7 @@ let act = game.actors.get(args[0].actor._id);
 let tok = canvas.tokens.get(args[0].tokenId);
 let spells = duplicate(act.data.data.spells);
 let pactLevel = spells.pact.level;
-let smiteCard = game.messages.entities
+let smiteCard = game.messages.contents
   .reverse()
   .find(
     (message) =>
@@ -12,7 +12,7 @@ let smiteCard = game.messages.entities
 await smiteCard.delete();
 async function smite(slotLevel, pact = false) {
   let dice = Math.min(slotLevel + 1, 5);
-  let attackMessage = game.messages.entities
+  let attackMessage = game.messages.contents
     .reverse()
     .find(
       (message) =>
@@ -45,7 +45,7 @@ async function smite(slotLevel, pact = false) {
   if (attack.isCritical) {
     dice *= 2;
   }
-  let roll = new Roll(`${dice}d8`).roll();
+  let roll = await new Roll(`${dice}d8`).roll();
   await game.dice3d?.showForRoll(roll);
   new MidiQOL.DamageOnlyWorkflow(
     act,
