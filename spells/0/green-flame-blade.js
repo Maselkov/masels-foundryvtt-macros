@@ -1,7 +1,7 @@
 token = canvas.tokens.get(args[0].tokenId);
 actor = token.actor;
 const level = actor.data.data.details?.level || 0;
-let attackMessage = game.messages.entities
+let attackMessage = game.messages.contents
   .reverse()
   .find(
     (message) =>
@@ -16,7 +16,7 @@ let bonus = "";
 const bonusDice = Math.floor((level + 1) / 6);
 if (bonusDice) {
   bonus = bonusDice + "d8";
-  let roll = new Roll(bonus).roll();
+  let roll = await new Roll(bonus).roll();
   await game.dice3d?.showForRoll(roll);
   new MidiQOL.DamageOnlyWorkflow(
     actor,
@@ -91,7 +91,7 @@ if (!target) {
 const spellAbility = actor.data.data.attributes["spellcasting"];
 const spellMod =
   actor.data.data.abilities[spellAbility].mod + actor.data.data.attributes.prof;
-let roll = new Roll(`${bonus} + ${spellMod}`).roll();
+let roll = await new Roll(`${bonus} + ${spellMod}`).roll();
 if (bonusDice) {
   await game.dice3d?.showForRoll(roll);
 }
