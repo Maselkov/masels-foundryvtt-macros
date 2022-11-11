@@ -2,6 +2,8 @@
 // Consumed=data.resources.primary.value
 // Max=data.resources.primary.max
 // Copy this to your hotbar for uses if using the Hotbar Uses module
+//Use a resource slot called "lay on hands" in attributes.
+// Might change this to take the resource from the item in the future
 if (args[0].targets.length != 1) {
   return ui.notifications.error(`You may only target a single token`);
 }
@@ -99,8 +101,10 @@ async function conditionSelectDialog() {
 }
 
 async function cureCondition(effect) {
-  let func = MidiQOL.socket().functions.get("removeEffects");
-  await func({ actorUuid: target.actor.uuid, effects: [effect.id] });
+  MidiQOL.socket().executeAsGM("removeEffects", {
+    actorUuid: target.actor.uuid,
+    effects: [effect.id],
+  });
   await actor.update({ [resourcePath]: points - 5 });
   let chatContent = `
                               <div class="midi-qol-nobox">
