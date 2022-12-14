@@ -3,6 +3,11 @@ Random assortment of macros for 5e D&D.
 
 Make sure to read the comment on each macro for usage instructions. Some macros still need to have their comments updated.
 
+## Important!
+Please note that some macros might have been broken by foundry/module updates. If you find a macro that doesn't work, please open an issue and I'll try to fix it. If any usage instructions are unclear, please also open an issue and I'll try to clarify them. Thank you!
+
+If you have any requests for spells/features you'd want automated, similarly, please open an issue and I'll see what I can do.
+
 # Currently automated
 
 ## Spells
@@ -13,6 +18,7 @@ Make sure to read the comment on each macro for usage instructions. Some macros 
 - Hex (With automatically adding damage to attack rolls)
 - Chromatic Orb
 - Chaos Bolt
+- Tasha's Caustic Brew
 
 ### Level 2
 - Ice Knife
